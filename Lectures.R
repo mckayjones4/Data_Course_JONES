@@ -165,6 +165,7 @@ color = c('light blue', 'orange', 'green', 'gray74', 'gray72', 'mint green',
 length(color)
 as.factor(color)
 
+#1/22/36####
 # 1. create a data frame with your favorite fruits
 # 2. add calories to the data frame
 # 3. write a loop to print name of fruit
@@ -182,3 +183,38 @@ for (i in df_2$fruit){
 for (i in df_2$calories_100){
   print(i)
 }
+
+for (i in 1:nrow(df_2)){
+  print(df_2[i, 2]) #2 is fruit
+  print(df_2[i, 4]) #4 is calories_100
+}
+
+for (i in df_2$new_col){
+  print(i)
+}
+
+for (i in 1:nrow(df_2)){
+  out <- paste('The calories of', df_2$fruit[i], 'is', df_2$calories_100[i])
+  print(out)
+}
+#make a new object
+out <- paste('The calories of', df_2$fruit[1], 'is', df_2$calores_100[1])
+
+
+# 1. save mtcars dataset to a new object
+# 2. save cars with mpg > 20 to a new obj called "good_cars"
+
+#prints R datasets
+data()
+
+mtcars
+cars <- data.frame(mtcars)
+out <- 1:nrow(cars)
+
+for (i in 1:nrow(cars)){
+  if (cars$mpg[i] > 20.0){
+    good_cars <- 
+  }  
+}
+
+
