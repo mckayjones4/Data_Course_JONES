@@ -218,3 +218,184 @@ for (i in 1:nrow(cars)){
 }
 
 
+#1/27/26####
+# 1. get the car with cyl equal to 4 (save to a new obj)
+# 2. save both mpg > 20 and cyl equal to 4 into a new object
+cars <- data.frame(mtcars)
+
+# when using a square bracket, always make sure to include a comma
+cars[1, ]
+
+# get the cars with cyl equal to four
+good_car <- cars[cars$cyl == 4, ]
+
+# filter for cars with mpg > 20
+super_good_car <- good_car[good_car$mpg > 20]
+
+# combine step 1 and 2 into one line (you can use & to add as many conditions as you would like)
+good_car <- cars[cars$cyl == 4 & cars$mpg > 20, ]
+View(good_car)
+
+# 3. what are the data types of each cols?
+type(cars[1, ])
+
+# sapply applies a function to every element in a list (or other data type)
+sapply(cars, class)
+#dimensions
+dim(cars)
+str(cars)
+
+## convert all columns to character
+char_car <- as.character(cars)
+str(char_car)
+cars_char <- data.frame(lapply(cars, as.character), stringsAsFactors = FALSE)
+
+#only change mpg to character
+# dollar sign covers the column, if the column does not exist, it makes a new column
+cars$mpg <- as.character(cars$mpg)
+
+for (col in names(good_car)) {
+  #print(col)
+  #print(good_car[, col])
+  good_car[ , col] <- as.character(good_car[, col])
+}
+
+?lapply
+
+str(good_car)
+
+new_data <- apply(good_car, 2, as.character)
+
+#installing packages
+install.packages('qrcode')
+library(qrcode)
+url <- 'https://ais-que.uvu.edu/que/si/begin.php?center=281'
+code <- qr_code(url)
+plot(code)
+
+
+#install tidyverse
+install.packages('tidyverse')
+library(tidyverse)
+
+filter()
+stats::filter()
+
+# 1. get the car with cyl equal to 4 (save to a new obj)
+# 2. save both mpg > 20 and cyl equal to 4 into a new object
+
+cars$mpg %>% #pipe |
+
+str(cars)  
+
+mean(cars$mpg)
+#achieves the same thing. %>% applies a function to a specified object
+cars$mpg %>%
+  mean()
+  #filter(mpg > 20)
+
+# Do 1. with %>%
+new_car <- cars %>%
+  filter(mpg>20) %>%
+  filter(cyl == 4)
+
+# save cars with mpg > 22, cyl = 4, wt <3
+## and hp < 90 in new obj
+new_object <- cars %>%
+  filter(mpg>22) %>%
+  filter(cyl == 4) %>%
+  filter(wt<3) %>%
+  filter(hp<90)
+
+new_object2 <- cars[cars$cyl == 4 & cars$mpg > 22 & cars$wt<3 & cars$hp<90, ]
+
+write.csv(new_object, 'Data/new_car.csv')
+
+#1/29/26####
+#install palmerpenguins package
+install.packages('palmerpenguins')
+#open 'penguins' dataset
+library(palmerpenguins)
+penguins <- penguins
+
+# save penguins with bill length > 40 into a new object
+big_bill <- penguins[penguins$bill_length_mm > 40, ]
+
+
+# calculate the average body mass of them
+mean(big_bill$body_mass_g, na.rm = TRUE)
+
+
+#do the same thing in tidyverse
+library(tidyverse)
+big_bill2 <- penguins %>%
+  filter(bill_length_mm > 40)
+
+mean(big_bill2$body_mass_g, na.rm = TRUE)
+
+#just one function
+penguins %>%
+  filter(bill_length_mm > 40) %>%
+  pluck("body_mass_g") %>%
+  mean()
+
+## calculate body mass of male and female penguins
+## of those bill length > 40
+penguins %>%
+  filter(bill_length_mm > 40) %>%
+  filter(sex == "male") %>%
+  pluck("body_mass_g") %>%
+  mean()
+
+penguins %>%
+  filter(bill_length_mm > 40) %>%
+  filter(sex == "female") %>%
+  pluck("body_mass_g") %>%
+  mean()
+  
+#pluck gives you a list
+
+penguins %>%
+  filter(bill_length_mm > 40) %>%
+  group_by(sex) %>%
+  summarize(average_body_mass = mean(body_mass_g),
+            no_of_penguins = n(),
+            max_mass = max(body_mass_g),
+            min_mass = min(body_mass_g)) %>%
+  arrange(desc(max_mass))
+  
+#find the fattest penguins (body mass > 5000)
+# count how many male and females
+# return the max body of male and female
+penguins %>%
+  filter(body_mass_g > 5000) %>%
+  group_by(sex) %>%
+  summarize(count = n(),
+             max_mass = max(body_mass_g))
+
+# add new column to data to tell if they are fat or not
+penguins$fatties <- penguins$body_mass_g > 5000
+View(penguins)
+
+#add new column with mutate
+penguins %>%
+  mutate(len_times_dpt = bill_length_mm * bill_depth_mm) %>%
+  View()
+
+# combine mutate() and case_when() (if statement in tidyverse)
+penguins %>%
+  mutate(fat_status = case_when(body_mass_g > 5000 ~ 'FAAAT',
+                                body_mass_g < 3000 ~ 'Skinny',
+                                body_mass_g < 5000 & body_mass_g > 3000 ~ 'neutral')) %>%
+  View()
+
+# add new column to data to highlight penguins with bill bills
+penguins %>%
+  mutate(big_bill = case_when(bill_length_mm > 50 ~ 'Long bill',
+                              bill_length_mm < 40 ~ 'short bill',
+                              bill_length_mm < 50 & bill_length_mm > 40 ~ 'neutral bill')) %>%
+  View()
+  
+
+
+ 
