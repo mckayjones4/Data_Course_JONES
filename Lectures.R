@@ -397,5 +397,93 @@ penguins %>%
   View()
   
 
+#2/3/2025####
+# using penguin data
+# add a new column (fatstat) 
+## for penguins with weight more than 5000g -->
+# for penguins less than or equal to 5000g and more than 3000 g -->
+# 
 
- 
+library(tidyverse)
+penguin <- penguins
+peng_2 <- penguin %>%
+  mutate(fatstat = case_when(body_mass > 5000 ~ 'Heavy',
+                             body_mass <= 5000 & body_mass > 3000 ~ 'Medium',
+                             body_mass <= 3000 ~ 'Light'))
+
+View(peng_2)
+
+#making plots
+plot()
+hist()
+barplot()
+boxplot()
+
+names(peng_2)
+plot(peng_2$bill_len, peng_2$body_mass)
+
+ggplot(aes(x = bill_len,
+           y = body_mass),
+       data = peng_2) + 
+  geom_point()
+
+#doing the same thing with tidyverse
+peng_2 %>%
+  ggplot(aes(x = bill_len,
+             y = body_mass,
+             color = sex,
+             shape = species)) + 
+  geom_point() + 
+  theme_minimal()
+
+# take a look at your new penguin data
+# make a cool graph
+peng_2 %>%
+  ggplot(aes(x = sex,
+             y = flipper_len)) +
+  geom_boxplot() + 
+  theme_minimal()
+
+geom_area()
+
+peng_2 %>%
+  ggplot(aes(x = species,
+             y = body_mass)) + 
+  geom_bar(stat = "identity", position = 'stack')
+
+#default position is stack
+
+## calculate the total weight of Gentoo penguins
+peng_2 %>%
+  filter(species == 'Gentoo') %>%
+  summarise(total_value = sum(body_mass, na.rm = TRUE))
+
+peng_2 %>%
+  filter(species == 'Gentoo') %>%
+  pluck('body_mass') %>%
+  sum(na.rm = T)
+
+## plot average body mass of penguins by sex and species
+peng_2 %>%
+  ggplot(aes(x = species,
+             y = body_mass,
+             color = sex)) + 
+  geom_bar(stat = 'identity', position = 'dodge', alpha = 0.05)
+  
+
+#total weight of all the penguins
+peng_2 %>%
+  summarize(total_value = sum(body_mass, na.rm = T))
+
+# plot average body mass of penguins by sex and species
+peng_2 %>%
+  group_by(species, sex) %>%
+  summarize(avg_mass = mean(body_mass, na.rm = T)) %>%
+  ggplot(aes(x = species,
+           y = avg_mass,
+           fill = sex)) +
+  geom_bar(stat = 'identity', position='dodge')
+
+  
+
+  
