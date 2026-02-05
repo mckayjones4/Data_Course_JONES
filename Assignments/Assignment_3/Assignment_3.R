@@ -14,8 +14,6 @@
 # Then, make sure to upload this to both Canvas and your GitHub repository
 
 
-
-
 # Vector operations! ####
 
 # Vectors are 1-dimensional series of values in some order
@@ -119,8 +117,6 @@ as.character(vector1) + 5
 as.numeric(vector3)
 
 
-
-
 #check it out
 plot(nums) 
 plot(nums_factor)
@@ -150,32 +146,45 @@ dbinom(50,100,.5) # probability of getting exactly 50 heads out of 100 coin flip
 
 
 
-
 # YOUR REMAINING HOMEWORK ASSIGNMENT (Fill in with code) ####
 
 # 1.  Get a subset of the "iris" data frame where it's just even-numbered rows
 
 seq(2,150,2) # here's the code to get a list of the even numbers between 2 and 150
-
-
+even_row <- dat[seq(2, nrow(dat), by=2), ]
 
 # 2.  Create a new object called iris_chr which is a copy of iris, except where every column is a character class
+#for (col in dat) {
+#  col <- as.character(col)
+#  print(class(col))
+#}
 
+library(dplyr)
+iris_chr <- dat %>%
+  mutate(across(everything(), as.character))
 
+str(iris_chr)
 
 # 3.  Create a new numeric vector object named "Sepal.Area" which is the product of Sepal.Length and Sepal.Width
-
-
+Sepal.Area <- dat$Sepal.Length * dat$Sepal.Width
 
 # 4.  Add Sepal.Area to the iris data frame as a new column
+dat <- dat %>%
+  mutate(Sepal.Area = Sepal.Length * Sepal.Width)
 
+#alternate way
+dat$Sepal.Area <- dat$Sepal.Length * dat$Sepal.Width
 
+#double check
+names(dat)
+head(dat)
 
 # 5.  Create a new dataframe that is a subset of iris using only rows where Sepal.Area is greater than 20 
       # (name it big_area_iris)
+big_area_iris <- dat %>%
+  filter(Sepal.Area > 20)
 
-
-
+head(big_area_iris)
 # 6.  Upload the last numbered section of this R script (with all answers filled in and tasks completed) 
       # to canvas
       # I should be able to run your R script and get all the right objects generated
