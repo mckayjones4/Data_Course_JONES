@@ -484,6 +484,65 @@ peng_2 %>%
            fill = sex)) +
   geom_bar(stat = 'identity', position='dodge')
 
-  
+#2/5/2026####
+# plot how many penguins observed on each island
+# and their species
+## (bonus) how many of them are male, female, etc.
 
-  
+peng <- penguins
+library(tidyverse)
+
+p <- peng %>%
+  group_by(island, species, sex) %>%
+  summarize(count = n()) %>%
+  ggplot(aes(x = species,
+             y = count,
+             fill = sex)) +
+  geom_bar(stat = 'identity', position = 'dodge') + 
+  #facet_wrap(~ island)
+
+#look at the structure of p
+str(p)
+
+p + facet_wrap(sex~island)
+
+#logical operators
+
+penguins %>%
+  filter(body_mass > 5000)
+
+#what the previous function (filter()) is doing. Returns T/F. Filter keeps T.
+penguins$body_mass > 5000
+
+penguins %>%
+  filter(!is.na(sex)) %>% View()
+
+!is.na(penguins$sex)
+
+# are penguins with bigger flippers heavier?
+## any differences between species?
+# make a plot to show that (make sure no NA for sex)
+
+penguins %>%
+  #summarize(average <- mean(flipper_len))
+  #filter(flipper_len > 215) %>%
+  filter(!is.na(sex)) %>%
+  ggplot(aes(x = flipper_len,
+         y = body_mass,
+         color = species, 
+         shape = sex)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "blue", se = F) + 
+  labs(Title = 'Realationship b/t Flippers and Weight',
+      x = 'Flipper (mm)',
+      y = 'Weight (g)',
+      color = 'Breed') + 
+  scale_x_continuous(limits = c(150, 250), expand = c(0, 0)) + 
+  scale_y_continuous(limits = c(2000, 8000), expand = c(0, 0)) +
+  #stat_ellipse()
+  #scale_color_viridis_d()
+  scale_color_manual(values = c(Chinstrap = 'lightblue',
+                                Gentoo = 'orange',
+                                Adelie = 'green'))
+  #scale_shape_manual(values = c(1, 10))
+
