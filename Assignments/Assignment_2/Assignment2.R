@@ -1,19 +1,20 @@
 #lists all of the .csv files found in the directory and stores that list in an object called “csv_files”
-csv_files <- list.files(path = "C:/Users/jones/OneDrive/Desktop/data_course_JONES/Data",
+csv_files <- list.files(path = "Data/",
            recursive = FALSE,
            pattern = ".csv")
+
 csv_files
 #how many files match that description using the length() function
 length(csv_files)
 
 #Open the wingspan_vs_mass.csv file and store the contents as an R object named “df” using the read.csv() function
-df <- read.csv("C:/Users/jones/OneDrive/Desktop/data_course_JONES/Data/wingspan_vs_mass.csv")
+df <- read.csv("Data/wingspan_vs_mass.csv")
 
 #Inspect the first 5 lines of this data set using the head() function
 head(df, 5)
 
 #Find any files (recursively) in the Data/ directory that begin with the letter “b” (lowercase)
-base_directory <- "C:/Users/jones/OneDrive/Desktop/data_course_JONES/Data"
+base_directory <- "Data/"
 begin_with_b <- list.files(path = base_directory,
                         recursive = TRUE,
                         pattern = "^b")
