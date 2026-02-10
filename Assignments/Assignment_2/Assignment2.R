@@ -1,6 +1,4 @@
 #lists all of the .csv files found in the directory and stores that list in an object called “csv_files”
-setwd("C:/Users/jones/OneDrive/Desktop/data_course_JONES/")
-
 csv_files <- list.files(path = "C:/Users/jones/OneDrive/Desktop/data_course_JONES/Data",
            recursive = FALSE,
            pattern = ".csv")
