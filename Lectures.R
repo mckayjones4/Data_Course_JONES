@@ -546,3 +546,99 @@ penguins %>%
                                 Adelie = 'green'))
   #scale_shape_manual(values = c(1, 10))
 
+
+
+#In the directory Data_Course/Data/data-shell/names/ there are a number of subdirectories and csv files.
+#Find all of those csv files and store their full absolute filepaths as a character vector in R.
+base_directory <- "Data/data-shell/names/"
+csv_files <- list.files(path = base_directory,
+                        recursive = T,
+                        full.names = T,
+                        pattern = "\\.csv$")
+
+print(csv_files)
+#Read in and print just the first 2 lines from each of those files
+file_list <- lapply(csv_files, read.csv)
+
+for (df in file_list){
+  print(head(df, n = 2))
+}
+
+#more compact:
+lapply(csv_files, function(f) head(read.csv(f), 2))
+
+#Find all the .txt files on your entire computer
+list.files(path = "C:/Users/",
+           recursive = T,
+           pattern = "\\.txt$")
+
+list.files(path = "C:/Users/jones/OneDrive/",
+           recursive = T,
+           pattern = "\\.txt$")
+
+#Find all files on your computer that contain the character string “es” in the filename
+list.files(path = "C:/Users",
+           recursive = T,
+           pattern = "es",
+           full.names = T)
+
+#2.10.2025####
+#make a cool plot using penguin data (make sure no NA)
+peng <- penguins
+library(tidyverse)
+
+plot_peng <- peng %>%
+  filter(!is.na(year)) %>%
+  filter(!is.na(sex)) %>%
+  ggplot(aes(x = body_mass,
+             y = bill_len,
+             color = year,
+             shape = sex)) + 
+  geom_point() + 
+  labs(title = "Bill Length vs. Body Mass",
+       x = "Body mass (g)",
+       y = "Bill Length (mm)") +
+  scale_color_continuous(palette = c("pink3", "yellowgreen", "yellow4")) + 
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = 'italica', size = 20))
+  
+plot_peng + 
+  theme(plot.title = element_text(hjust = 0.5, face = "bold.italic", size = 20)) + 
+  theme(axis.text = element_text(angle = 45, size = 16))
+
+
+ggsave('my_plot.png', plot = plot_peng, width =10, height = 10)
+
+peng %>%
+  filter(!is.na(sex)) %>%
+  ggplot(aes(x = flipper_len,
+             y = body_mass,
+             color = species)) +
+  geom_point(color = "black") +
+  geom_smooth()
+
+setwd("Data/")
+read.csv('wide_income_rent.csv')
+
+# make a plot to show penguin weight change across 3 years
+peng %>%
+  filter(!is.na(body_mass)) %>%
+  filter(!is.na(year)) %>%
+  ggplot(aes(x = as.factor(year),
+             y = body_mass,
+             color = species)) +
+  geom_boxplot() + 
+  geom_jitter(width = 0.1, aes(color = species))
+
+
+#read Data/DatasaurusDozen.tsv'
+# make a good graph
+dino <- read.table('Data/DatasaurusDozen.tsv')
+
+dino %>%
+  filter(!is.na(x)) %>%
+  filter(!is.na(y)) %>%
+  ggplot(aes(x = x,
+             y = y)) +
+  geom_point()
+         
