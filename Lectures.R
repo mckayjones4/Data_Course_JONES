@@ -732,12 +732,14 @@ mice <- read.csv('SilicosisandSilicaInducedAutoimmunityintheDiversityOutbredMous
 library(tidyverse)
 
 names(mice)
+View(mice)
 
 mice %>%
   group_by(Sex) %>%
-  ggplot(aes(x = Body.Weight..g.,
-             y = Urine.Protein..ug.ml.)) +
-  geom_point()
+  ggplot(aes(x = Tansoral.Exposure,
+             y = Total.Lung.Score,
+             color = Sex)) +
+  geom_boxplot()
 
 #Create a plot showing how GDP and life expectancy have
 ## changed across different countries over the years
