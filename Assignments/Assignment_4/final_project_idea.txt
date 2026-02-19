@@ -1,0 +1,4 @@
+For my final project, I want to look at the development of autoimmune diseases.
+The first dataset I want to analyze is the "SilicosisandSilicaInduced..." dataset,
+which looks at mice that were exposed to crystalline silica.
+If I need more data, I will look inside NIH sites, including NIAID.

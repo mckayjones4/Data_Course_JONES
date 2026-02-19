@@ -725,3 +725,116 @@ p <- dat_gap %>%
 
 
 anim_save("country_anim.gif", animation = p, renderer = gifski_renderer())
+
+
+#2.19.26####
+mice <- read.csv('SilicosisandSilicaInducedAutoimmunityintheDiversityOutbredMouse.csv')
+library(tidyverse)
+
+names(mice)
+
+mice %>%
+  group_by(Sex) %>%
+  ggplot(aes(x = Body.Weight..g.,
+             y = Urine.Protein..ug.ml.)) +
+  geom_point()
+
+#Create a plot showing how GDP and life expectancy have
+## changed across different countries over the years
+## label country
+## (bonus label country of interest)
+library(gapminder)
+library(gganimate)
+library(gifski)
+
+country_data <- gapminder
+
+View(country_data)
+
+country_data %>%
+  ggplot(aes(x = gdpPercap,
+             y = lifeExp,
+             color = continent)) +
+  geom_point() +
+  geom_text(aes(label = country, vjust = -0.5, hjust = -0.5)) +
+  theme(legend.position = 'bottom') + 
+  transition_time(year)
+
+# make a new col
+# only label countries we are interested in
+
+cool_countries <- c("Rwanda", "Cambodia", "Kuwait", "New Zealand", "United Kingdom", "China", "Norway", "Sri Lanka")
+
+country_data %>%
+  mutate(cool_country = case_when(country %in% cool_countries ~ country)) %>%
+  ggplot(aes(x = gdpPercap,
+             y = lifeExp,
+             color = continent)) +
+  geom_point() +
+  geom_text(aes(label = cool_country)) +
+  theme(legend.position = 'bottom') + 
+  transition_time(year)
+
+# data cleaning
+## read in 'wide_income_rent.csv' and make a plot to show
+# rent in each state
+dat <- read.csv('Data/wide_income_rent.csv')
+
+dat2 <- t(dat)
+dat3 <- as.data.frame(dat2)
+
+#change 1st row into column name
+dat4 <- dat3[-1, ]
+View(dat4)
+
+colnames(dat4) = c('income', 'rent')
+
+dat4$state = rownames(dat4)
+
+dat4 %>%
+  ggplot(aes(x = state,
+         y = rent)) +
+  geom_bar(stat = 'identity')
+
+# pivot_longer() and pivot_wide() functions in tidyverse
+?pivot_longer() #increases number of rows, decreases number of columns
+?pivot_wider() #increases number of columns, decreases number of rows
+
+dat %>%
+  pivot_longer(-variable, names_to = 'state', values_to = 'USD') %>%
+  View()
+
+dat_test <- data.frame(
+  ID = c(22, 33, 45, 60),
+  H = c(145, 155, 160, 132),
+  W = c(32, 22, 134, 50))
+
+dat_test %>%
+  pivot_longer(c(H, W), names_to = 'measure', values_to = 'value')
+
+dat_long <- dat_test %>%
+  pivot_longer(-ID, names_to = 'measure', values_to = 'value')
+
+dat_test %>%
+  pivot_longer(cols = everything(), names_to = 'measure', values_to = 'value')
+
+dat_long %>%
+  pivot_wider(names_from = 'measure', values_from = 'value')
+
+#make a plot
+dat %>%
+  pivot_longer(-variable, names_to = 'state', values_to = 'USD') %>%
+  pivot_wider(names_from = 'variable', values_from = USD) %>%
+  ggplot(aes(x = state,
+             y = rent)) +
+  geom_bar(stat = 'identity')
+
+#make table1 to table2
+table1 %>%
+  pivot_longer(c(cases, population), names_to = 'type', values_to = 'count')
+
+# make table2 like table1
+table2 %>% 
+  pivot_wider(names_from = 'type', values_from = 'count')
+
+
