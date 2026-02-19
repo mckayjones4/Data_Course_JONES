@@ -631,14 +631,97 @@ peng %>%
   geom_jitter(width = 0.1, aes(color = species))
 
 
+#2.17.26####
 #read Data/DatasaurusDozen.tsv'
-# make a good graph
+# make a good graph. First, know your data, and know your goal
 dino <- read.table('Data/DatasaurusDozen.tsv')
+library(readr)
+dino <- read_tsv('Data/DatasaurusDozen.tsv')
+
+library(tidyverse)
+
+str(dino)
+
+head(dino)
+
+dim(dino)
+
+unique(dino$dataset)
 
 dino %>%
-  filter(!is.na(x)) %>%
-  filter(!is.na(y)) %>%
+  group_by(dataset) %>%
+  summarize(mean_x = mean(x),
+            mean_y = mean(y),
+            sd_x = sd(x),
+            sd_y = sd(y),
+            max_x = max(x),
+            max_y = max(y))
+
+dino %>%
   ggplot(aes(x = x,
-             y = y)) +
-  geom_point()
-         
+         y = y,
+         color = dataset)) +
+  geom_point() + 
+  facet_wrap(~ dataset)
+
+library(GGally)
+ggpairs(dino)
+
+# install gapminder, gganimate, gifski
+# take a look at gapminder and make some cool graphs
+install.packages("gapminder")
+install.packages("gganimate")
+
+install.packages("gifski")
+
+library(gapminder)
+library(gganimate)
+library(gifski)
+
+peng <- penguins
+
+dat_gap <- gapminder
+ggpairs(dat_gap)
+
+dim(dat_gap)
+
+names(dat_gap)
+
+View(dat_gap)
+
+unique(dat_gap)
+
+str(dat_gap)
+range(dat_gap$year)
+unique(dat_gap$year)
+
+p <- dat_gap %>%
+  group_by(continent) %>%
+  ggplot(aes(x = continent,
+             y = lifeExp)) + 
+  geom_boxplot() + 
+  labs(title = "Life Expectancy by Continent",
+       x = "continent",
+       y = "Life Expectancy")
+
+animate(p, fps = 10, duration = 5)
+
+dat_gap %>%
+  ggplot(aes(x = year,
+             y = lifeExp,
+             color = continent)) + 
+  geom_point(aes(size = pop)) +
+  facet_wrap(~ continent) + 
+  transition_component(year)
+
+p <- dat_gap %>%
+  ggplot(aes(x = year,
+             y = lifeExp,
+             color = continent)) + 
+  geom_point(aes(size = pop)) +
+  facet_wrap(~ continent) + 
+  transition_time(year) + 
+  labs(title = 'Year: {frame_time}')
+
+
+anim_save("country_anim.gif", animation = p, renderer = gifski_renderer())
