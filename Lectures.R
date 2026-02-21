@@ -734,12 +734,20 @@ library(tidyverse)
 names(mice)
 View(mice)
 
-mice %>%
+p <- mice %>%
   group_by(Sex) %>%
   ggplot(aes(x = Tansoral.Exposure,
              y = Total.Lung.Score,
              color = Sex)) +
-  geom_boxplot()
+  geom_boxplot() +
+  labs(Title = "Total Lung score, grouped by Silicon Dose",
+       x = "Tansoral Exposure",
+       y = "Total Lung Score")
+  
+p + 
+  theme(plot.title = element_text(hjust = 0.5, face = "bold.italic", size = 20))
+
+ggsave('my_plot.png', plot = p, width =10, height = 10)
 
 #Create a plot showing how GDP and life expectancy have
 ## changed across different countries over the years
@@ -838,5 +846,3 @@ table1 %>%
 # make table2 like table1
 table2 %>% 
   pivot_wider(names_from = 'type', values_from = 'count')
-
-
