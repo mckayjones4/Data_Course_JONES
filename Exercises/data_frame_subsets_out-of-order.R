@@ -12,20 +12,18 @@ df # take a quick look at it
 
 
 # Add a new column to the data frame that represents "area" ####
+df$Area <- df$Length*df$Width
 
 # Save just the "cat" area values as a new vector called cat_area ####
-
-# Subset dat to just display the rows (all columns) where Species == Dog ####
-
-# Save that "Dog" subset as it's own .csv file please. ####
-
-# Plot Length vs Width of the full dat data frame and color the points by species ####
-
-
 cat_rows <- which(df$Species == "Cat")
 cat_area <- df[cat_rows,"Area"]
-write.csv(dog, "Dog_Subset.csv")
-plot(x=df$Length,y=df$Width,col=df$Species,pch=19)
-dog <- df[dog_rows,]
-df$Area <- df$Length*df$Width
+
+# Subset dat to just display the rows (all columns) where Species == Dog ####
 dog_rows <- which(df$Species == "Dog")
+
+# Save that "Dog" subset as it's own .csv file please. ####
+dog <- df[dog_rows,]
+write.csv(dog, "Dog_Subset.csv")
+
+# Plot Length vs Width of the full dat data frame and color the points by species ####
+plot(x=df$Length,y=df$Width,col=df$Species, pch=19)

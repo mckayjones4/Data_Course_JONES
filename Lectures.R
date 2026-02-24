@@ -33,7 +33,7 @@ for (i in 1:100) {
 #4. lists all the .csv files in the Data directory
 csv_files <- list.files('Data/', pattern='.csv', recursive = T)
 
-#5. Find how many files fit that description (145)
+#5. Find how many files fit that description (15)
 length(csv_files)
 
 #6. Store the wingspan_vs_mass.csv file in a 'df' object
