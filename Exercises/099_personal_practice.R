@@ -215,6 +215,22 @@ subset(mtcars, gear ==5)
 x <- sample(10) < 4
 which(x)
 
+# subsetting practice with NY air quality data
+aq <- airquality
+
+aq %>%
+  mutate(Date = Month + (Day/10)) %>%
+  ggplot(aes(x = Date,
+             y = Solar.R)) +
+  geom_histogram(stat = "identity")
+
+aq %>%
+  filter(!is.na(Temp)) %>%
+  ggplot(aes(x = Wind,
+             y = Ozone,
+             color = Temp)) +
+  geom_point() +
+  geom_smooth()
 
 # 5 Ways to Subset a df in R####
 ### import education expenditure data set and assign column names
@@ -251,6 +267,27 @@ df <- tibble(
   c = rnorm(10),
   d = rnorm(10)
 )
+
+
+# How to plot anything in ggplot####
+data("faithful")
+library(ggplot2)
+library(tidyverse)
+
+# make the points larger squares and slightly transparent.
+##See `?geom_point` for more information on the point layer.
+##transparency is controlled with `alpha`, and shape with `shape`
+##remember the difference between mapping and setting aesthetics
+ggplot(faithful) + 
+  geom_point(aes(x = eruptions, y = waiting),
+             shape = "c", alpha = 0.8)
+
+# Colour the two distributions in the histogram with different colours
+faithful %>%
+  mutate(group = ifelse(eruptions < 3, "short", "long")) %>%
+  ggplot(aes(x = eruptions, fill = group)) +
+  geom_histogram(position = "dodge") +
+  scale_fill_manual(values = c("red4", "blue"))
 
 # find the medican of each column
 output <- vector("double", ncol(df))
@@ -342,3 +379,268 @@ df %>%
   mutate(continent = fct_reorder(continent, lifeExp, .fun = median, .desc = T)) %>%
   ggplot(aes(x = continent, y = lifeExp)) +
   geom_boxplot()
+
+# 04_Characters ####
+library(tidyverse)
+
+vector = "Good morning! "
+# how many characters?
+nchar(vector) #14
+
+x <- c("Open", "Sesame ")
+y <- c("You", "Suck.")
+nchar(x) # 4 7
+nchar(c(x, y)) # 4 7 3 5
+
+m <- "The capital of the United States is Washington, D.C."
+unlist(str_split(m, " "))
+
+#trunate a string to a specified maximum width 
+str_trunc(m,11, ellipsis = "")
+str_sub(m, start = 13, end = 25)
+
+#extract Washington from m
+str_sub(m, start = 37, end = 46)
+
+paste(m, ", you idiot!", sep = '')
+o <- "United States"
+paste(o, ", you idiot!", sep = '')
+
+d <- str_split(c(q, paste0(m,", you idiot!")), pattern = " ")
+
+c(unlist(map(d,1)), "Heck!?")
+
+unlist(map(d,2))
+
+t <- c("a", "ab", "c", "d", "e", "fa")
+grep("a",t) # 1 2 6
+grepl("a",t)
+f <- c("b", "ca", "at", "c", "e", "aa")
+#lists within a list
+v = list(f,t)
+
+grep("a", v) # 1 2
+grepl("a", v) # TRUE TRUE
+
+grep("What",d) # integer(0)
+grepl("What",d) # FALSE FALSE
+
+q <- "What is the capital of the United States?"
+str_replace(q, "a", "A")
+
+# Change all spaces to underscores in the q vector
+str_replace_all(q, " ", "_")
+
+# 02_Regular Sequences
+seq(1,10, by=2) # 1 3 5 7 9
+seq(1, 10, by = 3) # 1 4 7 10
+
+seq(9,45, by = 9)
+
+seq(1,10, length.out=5)
+seq(1,10, length.out=3)
+
+x=1:5
+rep(x,2)
+rep(x,2, each=2)
+rep(x,each=4)
+
+x = "Hip"
+y = "Hooray"
+rep(c(rep(x,2),y),3)
+
+# create a sequence with values (in this order)
+rev(seq(50, 100, by=5)) # 100  95  90  85  80  75  70  65  60  55  50
+
+Semester_Start = as.Date("2019-08-19")
+Semester_End = as.Date("2019-12-05")
+seq(Semester_Start, Semester_End,by="week")
+
+midterm = seq(Semester_Start, Semester_End, length.out = 3) [2] # "2019-10-12"
+
+# 03_Indexing
+x = c('ss', 'aa', 'ff', 'kk', 'bb')
+x[1]
+
+x[c(1,3)] #'ss' 'ff'
+
+d <- data.frame(Name = c("Betty", "Bob", "Susan"),
+                Age = seq(20, 30, length.out = 3),
+                Height_cm = c(490, 22, 0))
+
+d[c("Name", "Age")]
+
+#Just print Betty's row
+d[c("Name", "Age", "Height_cm")][1,]
+
+#Same thing
+d[1,]
+
+d$Name 
+d$Age[2] #25
+
+d$Age > 20
+
+d[d$Age > 20,]
+
+d[d$Height_cm < 100,]
+
+d[1, c("Name", "Age")]
+
+
+# Missing Values
+X = c(NA, 3, 14, NA, 33, 17, NA, 41)
+is.na(X)
+X[!is.na(X)]
+
+Y = 21:28
+Z = data.frame(X, Y)
+
+# replace all NAs with 0
+Z[is.na(Z)] <- 0
+
+P = c(X, 33, NA, 400, 12, 0, 15)
+# replace all instances of "NA" with the number 10
+P[is.na(P)] <- 10
+
+W <- c(11, 3, 5, NA, 6)
+
+A <- c(33, 21, 12, NA, 7, 8)
+mean(A, na.rm = T)
+
+#load 'Orange' dataset
+data(Orange)
+head(Orange)
+O <- Orange
+
+# Replace all values of age=118 with NA
+O$age[O$age==118] <- NA
+
+# same thing (in tidyverse)
+O %>%
+  mutate(age = ifelse(age == 118, NA, age))
+
+c1 <- c(1, 2, 3, NA)
+c2 <- c(2, 4, 6, 89)
+c3 <- c(45, NA, 66, 101)
+X <- data.frame(c1, c2, c3)
+
+X
+complete.cases(X)
+# display only the rows with missing values
+X[!complete.cases(X), ]
+
+df <- data.frame(Name = c("NA", "Joseph", "Martin", NA, "Andrea"),
+                 Sales = c(15, 18, 21, 56, 60),
+                 Price = c(34, 52, 21, 44, 20),
+                 stringsAsFactors = FALSE)
+
+
+df_clean <- df[!is.na(df$Name) & df$Name != "NA", ]
+
+#same thing in tidyverse
+df_clean <- df %>%
+  filter(!is.na(Name), Name != "NA")
+df_clean
+
+
+
+
+# 08_Loops####
+# write a loop that iterates over the numbers 1 to 7 and prints the cube of each number
+for(i in 1:7){
+  print(i*i)
+}
+
+# write a loop that iterates over the column names of the iris dataset
+## print each together w/ the number of characters in the column name in paranthesis
+## Example: Sepal.Length (12) 
+for (n in colnames(iris)){
+  print(paste0(n, " (", nchar(n), ")"))
+}
+
+# write a while loop that prints out standard random normal numbers (rnorm()) but stops if you get a number > 1
+x <- rnorm(1)
+
+while (x <= 1) {
+  print(x)
+  x <- rnorm(1)
+}
+
+# simulate the coin flip 20 times (1 = heads, 0 = tails)
+outcomes <- vector()
+for (i in 1:20){
+  outcomes[i] <- sample(0:1, 1)
+}
+
+# investigate the number of times before the produce 123*4 reaches above 10 million
+n <- 1
+product <- 1
+iteration <- 0
+while (product < 10000000){
+  product <- product*n
+  print(product)
+  n=n+1
+  iteration=iteration+1
+}
+print(iteration)
+
+# use a while loop to simulate one stock price path starting at 100 and randomly normally distributed percentage jumps
+## with mean 0 and sd 0.01 each period.
+## How long does it take to reach above 150 or below 50?
+price <- 100
+time <- 0
+while (price>50 & price<150) {
+  price = price + rnorm(1, mean = 0, sd = 0.01)
+  print(price)
+  time = time+1
+}
+
+#06_logical_operations####
+# output only the rows of mtcars where mpg is between 15 and 20
+mtcars %>%
+  filter(mtcars$mpg > 15 & mtcars$mpg < 20)
+
+# output only rows where column cycl is equal to 6 and column am is not 0
+mtcars %>%
+  filter(mtcars$cyl==6 & mtcars$am!=0)
+
+# output where column gear or carb has the value 4
+mtcars %>%
+  filter(mtcars$gear==4 | mtcars$carb==4)
+
+# output only even rows of mtcars
+even_rows <- mtcars[seq_len(nrow(mtcars)) %% 2==0, ]
+even_rows
+
+# same thing in tidyverse
+mtcars %>%
+  filter(row_number() %% 2 ==0)
+
+# change every fourth element in column mpg to 0
+mtcars %>%
+  mutate(mpg = ifelse(row_number()%%4==0, 0, mpg))
+
+#output only the rows of mtcars where columns vs amd am have the same value 1, solve this w/o == operator
+mtcars %>%
+  filter(vs==0 & am==0)
+
+mtcars %>%
+  filter(!xor(vs, am))
+
+# output only rows of mtcars where at least vs or am have the value 1
+mtcars %>%
+  filter(xor(vs, am))
+
+# change all values that are 0 in the column am in mtcars to 2
+mtcars %>%
+  mutate(am = ifelse(am==0, 2, am))
+
+# add 2 to every element in the column 'vs' without using numbers
+mtcars %>%
+  mutate(vs = vs+(TRUE+TRUE))
+
+# output only those rows of data where vs and am have different values
+## solve this w/o using == or !=
+mtcars %>%
+  filter(xor(vs, am))

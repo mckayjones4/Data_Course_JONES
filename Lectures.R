@@ -283,7 +283,6 @@ stats::filter()
 
 # 1. get the car with cyl equal to 4 (save to a new obj)
 # 2. save both mpg > 20 and cyl equal to 4 into a new object
-
 cars$mpg %>% #pipe |
 
 str(cars)  
