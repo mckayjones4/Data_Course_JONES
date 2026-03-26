@@ -644,3 +644,171 @@ mtcars %>%
 ## solve this w/o using == or !=
 mtcars %>%
   filter(xor(vs, am))
+
+#Data Visualization####
+ggplot(data = mpg, mapping=aes(x = displ, y=hwy, color=drv)) +
+  geom_point() +
+  geom_smooth(se = F)
+
+ggplot(data = mpg, mapping=aes(x = displ, y = hwy)) +
+  geom_point(mapping=aes(x=displ, y=hwy, color=drv))
+  #geom_smooth(mapping=aes(x=displ, y=hwy, linetype = drv), se=F)
+
+# geom_col represents actual values in the data
+ggplot(data = diamonds, mapping=aes(x=cut, y = depth)) +
+  geom_col()
+
+# geom_bar() makes the height of the bar proportional to the number of cases in each group
+ggplot(data = diamonds, mapping=aes(x=cut, fill = cut)) +
+  geom_bar()
+
+# in clarity, the bars are automatically stacked
+diamonds %>%
+  ggplot(aes(x=cut, fill = clarity)) +
+  geom_bar()
+
+# position = 'dodge' places overlapping objects directly beside one another
+ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x=cut, fill=clarity), position = 'dodge')
+
+# to see where the 'mass' of data is (that is covered up by overplotting), use 'jitter'
+## position='jitter' adds a small amount of random noise to each point
+ggplot(data = mpg) +
+  geom_point(mapping=aes(x=displ, y=hwy), position = 'jitter')
+
+# coord_flip() switches the x and y axes
+ggplot(data = mpg, mapping=aes(x = class, y = hwy)) +
+  geom_boxplot() +
+  coord_flip() +
+  geom_image(aes(image=image), size=0.2) +
+  theme_minimal()
+  
+# coord_quickmap() sets the aspect ratio correctly for map (really useful for spatial data)
+nz <- map_data("nz")
+
+ggplot(nz, aes(long, lat, group = group)) +
+  geom_polygon(fill="white", colour = "black") +
+  coord_quickmap()
+
+data("CO2")
+means <- CO2 %>%
+  group_by(Type, Treatment, conc) %>%
+  summarize(MeanUptake = mean(uptake), .groups = "drop")
+
+ggplot(means, aes(x=conc, y=MeanUptake, color=Treatment)) +
+  geom_point() +
+  facet_grid(~Type)
+
+
+#UGLY PLOT####
+air <- airquality
+
+library(ggimage)
+
+img_path <- 'Data/ozone_hole.webp'
+
+ugly <- air %>%
+  filter(!is.na(Temp)) %>%
+  ggplot(aes(x = Wind, y = Ozone)) +
+  
+  # Replace points with images
+  geom_image(aes(image = img_path), size = 0.15) +
+  
+  # Make the smooth line ugly and thick
+  geom_smooth(color = "limegreen", fill = "magenta", size = 4, linetype = 3) +
+  
+  # Add unreadable text labels in bad places
+  geom_text(aes(label = Wind),
+            size = 8,
+            angle = 75,
+            vjust = -10,
+            hjust = 5,
+            color = "yellow") +
+  
+  # Make the Temp legend hideous
+  scale_color_gradientn(
+    colors = c("hotpink", "cyan", "yellow", "chartreuse", "orange"),
+    name = "TEMP??",
+    labels = c("TOO COLD", "MEH", "WAY TOO HOT")
+  ) +
+  
+  # Move axis labels to bizarre places
+  labs(
+    x = "WIND???",
+    y = "OZONE MAYBE??",
+    title = "OZONE OZONE",
+  ) +
+  
+  # Push labels off the page
+  theme(
+    axis.title.x = element_text(size = 30, color = "red", vjust = -2),
+    axis.title.y = element_text(size = 30, color = "blue", hjust = -1),
+    axis.text.x = element_text(size = 18, angle = 120, hjust = -1, color = "purple"),
+    axis.text.y = element_text(size = 18, angle = 45, vjust = 1, color = "darkgreen"),
+    
+    # Make background aggressively ugly
+    plot.background = element_rect(fill = "yellow"),
+    panel.background = element_rect(fill = "hotpink"),
+    
+    # Add thick, clashing gridlines
+    panel.grid.major = element_line(color = "orange", size = 3),
+    panel.grid.minor = element_line(color = "red", size = 2),
+    
+    # Make the legend huge and intrusive
+    legend.position = "bottom",
+    legend.background = element_rect(fill = "chartreuse"),
+    legend.text = element_text(size = 20, face = "bold")
+  )
+ggsave('ugly_plot.png', plot = ugly, width =10, height = 10)
+
+#cleaning BP data####
+library(readxl)
+
+path <- 'Data/messy_bp.xlsx'
+
+dat <- read_xlsx(path, skip=3)
+
+#clean DOB data
+dat_clean <- dat %>%
+  clean_names %>%
+  mutate(DOB = as.Date(paste(year_birth, month_of_birth, day_birth, sep = '-')))
+
+bp = dat_clean %>%
+  select(-starts_with('HR')) %>%
+  pivot_longer(cols = starts_with('BP'),
+               names_to = 'visit',
+               values_to = 'BP') %>%
+  mutate(visit = case_when(visit == 'bp_8' ~ 1,
+                           visit == 'bp_10' ~ 2,
+                           visit == 'bp_12' ~ 3)) %>%
+  separate(BP, into = c('sys', 'dia'))
+
+hr <- dat_clean %>%
+  select(-starts_with('bp')) %>%
+  pivot_longer(cols = starts_with('hr'),
+               names_to = 'visit',
+               values_to = 'hr') %>%
+  mutate(visit = case_when(visit == 'hr_9' ~ 1,
+                           visit == 'hr_11' ~2,
+                           visit == 'hr_13' ~3))
+
+
+dat_clean_2 = full_join(bp, hr)
+
+dat_clean_3 <- dat_clean_2 %>%
+  select(-month_of_birth, -day_birth, -year_birth)
+
+View(dat_clean_3)
+
+dat_clean_4 <- dat_clean_3 %>%
+  mutate(race = case_when(race == 'WHITE' ~ 'White',
+                          race == 'Caucasian' ~ 'White',
+                          TRUE ~ race))
+
+dat_clean_4 %>%
+  pivot_longer(cols = c('sys', 'dia'), names_to = 'bp_type',
+               values_to = 'bp') %>%
+  mutate(bp = bp %>% as.numeric()) %>%
+  ggplot(aes(x = visit, y = bp, color = bp_type)) +
+  geom_path() +
+  facet_wrap(~hispanic)

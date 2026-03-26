@@ -845,3 +845,314 @@ table1 %>%
 # make table2 like table1
 table2 %>% 
   pivot_wider(names_from = 'type', values_from = 'count')
+
+#3/3/2026####
+table1
+table2
+
+# 1 observation each row
+## col = 1 variable
+
+#make table2 clean/tidy
+table2 %>%
+  pivot_wider(names_from = 'type', values_from = 'count')
+
+table3 %>%
+  separate(rate, into = c('cases', 'population'), convert = T) %>%
+  mutate(rate = cases/population) %>%
+  select(-rate)
+
+#fix these data frames
+table4a
+table4b
+
+table4a_2 <- table4a %>%
+  pivot_longer(-country, names_to='year', values_to='cases')
+
+table4b_2 <- table4b %>%
+  pivot_longer(-country, names_to = 'year', values_to = 'population')
+
+# join two data frames together
+full_join(table4a_2, table4b_2)
+
+full_join(table4a_2, table4b_2, by='country')
+
+table5 %>%
+  separate(rate, into = c('cases', 'population'), convert = T) %>%
+  mutate(year = paste0(century, year) %>% as.numeric()) %>%
+  select(-century)
+
+c(table5$century, table5$year)
+#paste puts a space in between
+
+#paste0 does not give a space
+paste0(table5$century, table5$year)
+
+# read 'messy_bp.xlsv'
+library(readxl)
+
+path <- 'Data/messy_bp.xlsx'
+
+dat <- read_xlsx(path, skip=3)
+
+dat2 <- dat %>%
+  mutate(DOB = as.Date(paste(`Year birth`, `Month of birth`, `Day birth`, sep = "-"),
+           format = "%Y-%m-%d")) %>%
+  select(-`Month of birth`, -`Year birth`, -`Day birth`)
+
+dat %>%
+  select(-c("HR...9", "HR...11", "HR...13")) %>%
+  pivot_longer(cols = "BP...8", "BP...8")
+
+bp <- dat %>%
+  select(-starts_with('HR')) %>%
+  pivot_longer(cols = starts_with('BP'),
+                            names_to = 'visit',
+                            values_to = 'BP') %>%
+  mutate(visit = case_when(visit == 'BP...8' ~ 1,
+                         visit == 'BP...10' ~ 2,
+                         visit == 'BP...12' ~ 3)) %>%
+  separate(BP, into = c('systolic', 'dia'))
+
+# clean HR data and put them back
+hr <- dat %>%
+  select(-starts_with('BP')) %>%
+  pivot_longer(cols = starts_with('HR'),
+               names_to = 'visit',
+               values_to = 'HR') %>%
+  mutate(visit = case_when(visit == 'HR...9' ~ 1,
+                           visit == 'HR...11' ~ 2,
+                           visit == 'HR...13' ~ 3))
+
+dat_clean = full_join(bp, hr)
+
+# janitor helps clean up names with spaces
+library(janitor)
+
+dat_clean %>%
+  clean_names() %>% names()
+
+dat_clean2 <- dat_clean %>%
+  clean_names() %>%
+  mutate(DOB = as.Date(paste(year_birth, month_of_birth, day_birth, sep = '-')))
+
+dat_clean2 %>%
+  ggplot(aes(x = DOB, y = hr)) + 
+  geom_line() +
+  facet_wrap( ~ race)
+
+
+dat_clean_3 <- dat_clean %>%
+  clean_names() %>%
+  mutate(DOB = paste(year_birth, month_of_birth, day_birth, sep = '-') %>% as.Date()) %>%
+  mutate(race = case_when(race == 'Caucasian' | race == 'WHITE' ~ 'White',                        race == 'WHITE' ~ 'White',
+                          TRUE ~ race))
+
+#make sure previous script worked correctly
+dat_clean_3$race %>% unique()
+
+dat_clean_3 %>%
+  ggplot(aes(x = visit, y = hr)) + 
+  geom_path() +
+  facet_wrap(~ race)
+
+#blood pressure plot
+dat_clean_3 = dat_clean_3 %>%
+  mutate(systolic = systolic %>% as.numeric(),
+         dia = dia %>% as.numeric())
+
+dat_clean_3 %>%
+  ggplot(aes(x = visit, color = race)) +
+  geom_path(aes(y = systolic)) +
+  geom_path(aes(y = dia)) +
+  facet_wrap(~ race)
+
+dat_clean_4 <- dat_clean_3 %>%
+  pivot_longer(cols =c('systolic', 'dia'), names_to = 'bp_type',
+               values_to = 'bp')
+
+View(dat_clean_4)
+
+dat_clean_4 %>%
+  ggplot(aes(x = visit, y = bp, color = bp_type)) +
+  geom_path() +
+  facet_wrap(~ race)
+
+dat_clean_4 %>%
+  ggplot(aes(x = visit, y = bp, color = bp_type)) +
+  geom_path() +
+  facet_wrap(~ hispanic)
+
+#3/19/2026####
+#load required packages
+library(tidyverse)
+library(janitor)
+library(skimr)
+
+#load the bird data
+birds <- read.csv('Data/Bird_Measurements.csv')
+
+#gives a summary
+birds <- read_csv('Data/Bird_Measurements.csv')
+skim(birds)
+
+#clean data
+keepers <- c("Family", "Species_number", "Species_name", "English_name", 
+             "Clutch_size", "Egg_mass") %>%
+  str_to_lower()
+
+str_squish() #remove whitespace
+
+# separate male data
+male <- birds %>%
+  clean_names() %>%
+  select(keepers, starts_with("m_"), -ends_with('_n')) %>% 
+  mutate(sex = 'male')
+
+# separate female data
+female <- birds %>%
+  clean_names() %>%
+  select(keepers, starts_with("f_"), -ends_with('_n')) %>% 
+  mutate(sex = 'female')
+
+#separate unsexed data
+unsexed <- birds %>%
+  clean_names() %>%
+  select(keepers, starts_with("unsexed_"), -ends_with('_n')) %>% 
+  mutate(sex = 'unsexed')
+
+#make sure that the names match
+names(male) <- names(male) %>% str_remove('m_')
+names(female) <- names(female) %>% str_remove('f_')
+names(unsexed) <- names(unsexed) %>% str_remove('unsexed_')
+
+identical(names(male), names(female))
+
+# combine the data
+clean_data <- full_join(male, female) %>%
+  full_join((unsexed))
+
+# make your own function
+say_hello <- function(argument){
+  # code to execute
+  print("Hello")
+}
+
+say_hello()
+
+add_numbers <- function(x, y){
+  results <- x + y
+  return(results)
+}
+
+odd_or_even <- function(x){
+  if(x %% 2 == 0){
+    return(paste(x, "is even"))
+  }
+  else{
+    return(paste(x, "is odd"))
+  }
+}
+
+clean_bird_data <- function(dat){
+  ## data cleaning
+  keepers = c('Family', 'Species_number', 'Species_name', 'English_name', 
+              'Clutch_size', 'Egg_mass') %>% 
+    str_to_lower()
+  
+  # separate male data
+  male = dat %>% 
+    clean_names() %>% 
+    select(keepers, starts_with('m_'), -ends_with('_n')) %>% 
+    mutate(sex = 'male') 
+  
+  # separate female data
+  female = dat %>% 
+    clean_names() %>% 
+    select(keepers, starts_with('f_'), -ends_with('_n')) %>% 
+    mutate(sex = 'female') 
+  
+  # separate unsexed data
+  unsexed = dat %>% 
+    clean_names() %>% 
+    select(keepers, starts_with('unsexed_'), -ends_with('_n')) %>% 
+    mutate(sex = 'unsexed') 
+  
+  # rename the col names
+  names(male) <- names(male) %>% str_remove('m_')
+  names(female) <- names(female) %>% str_remove('f_')
+  names(unsexed) <- names(unsexed) %>% str_remove('unsexed_')
+  
+  real_clean_data = male %>% 
+    full_join(female) %>% 
+    full_join(unsexed)
+  
+  return(real_clean_data)
+}
+
+real_clean_data <- clean_bird_data(birds)
+
+View(real_clean_data)
+
+#3/24/2026####
+# download 'height.xlsx'
+## clean
+library(readxl)
+library(measurements)
+dat <- read_excel("Data/height.xlsx")
+
+
+clean <- dat %>%
+  pivot_longer(cols = c(male, female), names_to = 'sex', values_to = 'height') %>%
+  separate(height, into = c("feet", "inches"), convert = T) %>% # convert changes chars into numeric
+  mutate(total_inches = feet*12 + inches) %>%
+  mutate(cm = total_inches*2.54) %>%
+  mutate(cm_convert = conv_unit(total_inches, from = 'in', to = 'cm'))#same thing, from 'measurements' package
+
+clean %>%
+  ggplot(aes(x = sex,
+             y = cm_convert)) +
+  geom_boxplot()
+
+clean %>%
+  ggplot(aes(x = cm, fill = sex)) +
+  geom_density(alpha = 0.5)
+
+t.test(cm ~ sex, data = clean)
+
+glm(formula = cm ~ sex, data = clean)
+
+clean$sex = relevel(factor(clean$sex), ref='male')
+
+mod = glm(cm~sex, clean)
+
+#3/26/26####
+#load required packages
+library(tidyverse)
+library(janitor)
+library(skimr)
+library(ggplot2)
+
+## does displ affect cty?
+dat <- mpg
+
+dat %>%
+  ggplot(aes(x = displ, y = cty)) +
+  geom_point(color = "blue") + #scatterplot
+  stat_smooth(method = "lm", se = T, color="red")
+  
+#correlation tests
+cor.test(dat$displ, dat$cty)
+cor.test(dat$displ, dat$cty, method = 'spearm')
+
+# how much does displ affect cty?
+glm(cty ~ displ, data = dat)
+
+dat %>%
+  ggplot(aes(x = displ, y = cty)) +
+  geom_point() +
+  geom_smooth(method = 'glm') +
+  scale_x_continuous(limits = c(0, 10), expand = c(0, 0)) +
+  annotate('text', x = 5, y = 30,
+           label = 'cty = (-2.63)*displ+25.99',
+           size = 3)
