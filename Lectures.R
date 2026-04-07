@@ -1142,11 +1142,11 @@ dat %>%
   stat_smooth(method = "lm", se = T, color="red")
   
 #correlation tests
-cor.test(dat$displ, dat$cty)
+corr <- cor.test(dat$displ, dat$cty)
 cor.test(dat$displ, dat$cty, method = 'spearm')
 
 # how much does displ affect cty?
-glm(cty ~ displ, data = dat)
+mod <- glm(cty ~ displ, data = dat)
 
 dat %>%
   ggplot(aes(x = displ, y = cty)) +
@@ -1156,3 +1156,102 @@ dat %>%
   annotate('text', x = 5, y = 30,
            label = 'cty = (-2.63)*displ+25.99',
            size = 3)
+
+mod$coefficients
+mod$fitted.values
+
+mod$residuals
+
+#very useful package
+library(easystats)
+performance(mod)
+report(mod)
+#report on correlation test
+report(corr)
+
+# build a better model for 'cty'
+## prove it's a better model
+mod2 <- glm(cty ~ displ + cyl, data = dat)
+
+mod3 <- glm(cty ~ displ + cyl + manufacturer, data = dat)
+
+mod_max <- glm(cty~displ + manufacturer + model + year +cyl + trans, data = dat)
+
+#compare each model's performance
+performance(mod)
+performance(mod2)
+performance(mod3)
+
+compare_performance(mod, mod2, mod3, mod_max)
+
+compare_performance(mod, mod2, mod3, mod_max) %>% plot()
+
+#3/31/26####
+# build a model to predict cty as a function of displ
+## mpg dataset (ggplot)
+library(ggplot2)
+library(easystats)
+dat <- mpg
+
+mod <- glm(data = dat,
+           formula = cty~displ)
+summary(mod)
+report(mod)
+performance(mod)
+
+predict(mod, dat)
+
+mod$fitted.values[1]
+
+plot(predict(mod, dat), mod$fitted.values)
+
+predict(mod, data.frame(displ=1:100))
+dat$displ %>% range()
+
+dat$pred = predict(mod, dat)
+plot(dat$cty, dat$pred)
+
+mod2 <- glm(cty~displ+cyl,
+            data = dat)
+summary(mod2)
+
+mod3 <- glm(cty~displ + cyl + displ:cyl,
+            data = dat)
+
+dat %>%
+  ggplot(aes(x = displ, y = cty, color = factor(c(cyl)))) +
+  geom_point() + 
+  geom_smooth(method = 'glm')
+
+dat %>%
+  ggplot(aes(x = displ, y = cty)) +
+  geom_point() + 
+  geom_smooth(method = 'glm')
+
+mod5 <- glm(cty~displ + cyl + year + displ:cyl + displ:year + displ:year,
+            data = dat)
+
+# predict cty using 3 models and compare the results
+model <- glm(cty~year, data = dat)
+plot(predict(model, dat), mod$fitted.values)
+
+model2 <- glm(cty~year + hwy + drv,
+              data = dat)
+plot(predict(model2, dat), mod$fitted.values)
+
+dat$pred1 <- predict(mod, dat)
+dat$pred2 <- predict(mod2, dat)
+dat$pred3 <- predict(mod3, dat)
+
+dat %>%
+  gplot(aes(x = displ, y = pred1, color = factor(cyl))) +
+  geom_point() +
+  geom_smooth(method = 'glm')
+
+dat %>%
+  pivot_longer(starts_with('pred')) %>%
+  ggplot(aes(x = displ, y = cty, color = factor(cyl))) +
+  geom_point(aes(y = value), color = 'black') +
+  geom_smooth(method = 'glm') +
+  facet_wrap(~name)
+
