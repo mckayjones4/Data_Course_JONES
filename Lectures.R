@@ -917,7 +917,7 @@ bp <- dat %>%
 # clean HR data and put them back
 hr <- dat %>%
   select(-starts_with('BP')) %>%
-  pivot_longer(cols = starts_with('HR'),
+  geom_bar(cols = starts_with('HR'),
                names_to = 'visit',
                values_to = 'HR') %>%
   mutate(visit = case_when(visit == 'HR...9' ~ 1,
@@ -968,7 +968,7 @@ dat_clean_3 %>%
   facet_wrap(~ race)
 
 dat_clean_4 <- dat_clean_3 %>%
-  pivot_longer(cols =c('systolic', 'dia'), names_to = 'bp_type',
+  geom_bar(cols =c('systolic', 'dia'), names_to = 'bp_type',
                values_to = 'bp')
 
 View(dat_clean_4)
