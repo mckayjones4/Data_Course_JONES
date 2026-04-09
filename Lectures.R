@@ -1255,3 +1255,49 @@ dat %>%
   geom_smooth(method = 'glm') +
   facet_wrap(~name)
 
+#4/7/2026####
+# build your best model to predict cty
+library(easystats)
+library(ggplot2)
+library(tidyverse)
+
+# load mpg data
+dat <- mpg
+
+mod1 <- glm(cty~year+model, data = dat)
+mod2 <- glm(cty~year, data = dat)
+mod3 <- glm(cty~displ+year+model, data = dat)
+mod4 <- glm(cty~manufacturer+year+model+displ, data = dat)
+mod5 <- glm(cty~hwy, data = dat)
+
+compare_performance(mod1, mod2, mod3, mod4, mod5)
+
+library(MASS)
+# runs all the possible combinations (finds lowest AIC and highest R2)
+step_mod4 <- stepAIC(mod4)
+
+mod_dot = glm(data = mpg,
+              formula = cty ~ .)
+
+mod_dot$formula
+summary(mod_dot)
+
+mod_dot_sq = glm(data = mpg,
+                 formula=cty ~ .^2) # takes a long time
+
+# does penguin mass vary between species?
+dat <- penguins
+
+dat$species <- relevel(dat$species, ref = 'Gentoo')
+
+mod1 <- glm(data = dat, formula = body_mass~species)
+mod2 <- glm(data = dat, formula = body_mass ~ species+bill_len+bill_dep)
+
+compare_performance(mod1, mod2) %>% plot()
+
+summary(mod1)
+
+penguins$species %>% unique()
+
+#swap
+
