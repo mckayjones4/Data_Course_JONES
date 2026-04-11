@@ -1,0 +1,28 @@
+1. A few predicted response values from the best model are scientifically meaningless, because they lie much higher and lower than the actual variables. Many of the explanatory variables had data that was pretty discrete, which made it hard to predict the data with a linear model.
+2. Yes, non-linear relationship existed between Species and GrowthRate. Resource to deal with non-linear relationships: https://www.econometrics-with-r.org/8.1-a-general-strategy-for-modelling-nonlinear-regression-functions.html
+
+3. Code to model the data in '/Data/non_linear_relationship.csv'
+
+# model non-linear relationships
+data <- read.csv("../../Data/non_linear_relationship.csv")
+
+glimpse(data)
+
+# build a linear model to see what we're dealing with
+linear_model <- lm(response~predictor, data = data)
+
+# visualize how bad the linear model is
+data %>%
+  ggplot(aes(x = predictor,
+             y = response)) +
+  geom_point() +
+  geom_smooth(method = 'lm', color = 'red')
+
+# build a quadratic model instead
+quad_model <- lm(response ~ predictor + I(predictor^2), data = data)
+
+data %>%
+  ggplot(aes(x= predictor,
+             y = response)) +
+  geom_point() +
+  stat_smooth(method = 'lm', formula = y ~ x + I(x^2), color = "blue")

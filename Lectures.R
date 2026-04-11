@@ -1273,6 +1273,7 @@ mod5 <- glm(cty~hwy, data = dat)
 compare_performance(mod1, mod2, mod3, mod4, mod5)
 
 library(MASS)
+
 # runs all the possible combinations (finds lowest AIC and highest R2)
 step_mod4 <- stepAIC(mod4)
 
@@ -1299,5 +1300,85 @@ summary(mod1)
 
 penguins$species %>% unique()
 
-#swap
+#4/9/26####
+# logistic regression
+# using penguins data to build a model to predict
+## if a penguin is Gentoo
+dat <- penguins
 
+dat$species <- relevel(dat$species, ref = 'Gentoo')
+
+mod <- dat %>%
+  mutate(gentoo = case_when(species == 'Gentoo'~T,
+                            TRUE~F)) %>%
+  glm(data = .,
+      formula = gentoo~bill_len + body_mass,
+      family = 'binomial')
+
+summary(mod)
+report(mod)
+
+dat$pred = predict(mod, dat, type = 'r')
+
+dat %>%
+  ggplot(aes(x = bill_len, y = pred)) +
+  geom_point()
+
+dat %>%
+  mutate(outcome = case_when(pred > 0.75 ~ 'Gentoo',
+                             pred < 0.25 ~ 'Not Gentoo',
+                             TRUE ~ "idk")) %>%
+  select(species, outcome) %>%
+  mutate(matches = case_when(species == 'Gentoo' & outcome == 'Gentoo'~ TRUE,
+                             species != 'Gentoo' & outcome == 'Not Gentoo'~F,
+                             TRUE~F)) %>%
+  pluck('matches') %>%
+  sum()/nrow(dat)
+
+# use this data to predict grad school admission
+dat_ad <- read.csv('./Data/GradSchool_Admissions.csv')
+
+grad_model <- glm(data = dat_ad, formula = admit~gpa+rank+gre, family = 'binomial')
+
+dat_ad$pred <- predict(grad_model, dat_ad, type = 'response')
+
+dat_ad %>%
+  ggplot(aes(x = gpa, y = pred)) + 
+  geom_point()
+
+dat_ad %>%
+  mutate(outcome = case_when(pred > 0.50 ~ 'Admitted!',
+                             pred < 0.25 ~ 'Not admitted',
+                             TRUE ~ "maybe")) %>%
+  select(gpa, outcome)
+
+
+mod_add = glm(data = dat_ad,
+              formula = as.logical(admit) ~ (gre+gpa)*rank,
+              family = 'binomial')
+
+summary(mod_add)
+
+dat_ad$pred2 <- predict(mod_add, dat_ad, type = 'response')
+
+dat_ad %>%
+  ggplot(aes(x = gpa, y = pred, color = factor(rank))) +
+  geom_point() +
+  geom_smooth()
+
+
+library(caret)
+
+id = createDataPartition(mpg$cty, p = 0.8, list = F)
+
+dat_train = mpg[id, ]
+dat_test = mpg[-id, ]
+
+mod_mpg_train = glm(data = dat_train,
+                    formula = cty ~ displ+year:year+model)
+
+dat_test$pred = predict(mod_mpg_train, dat_test)
+
+dat_test %>%
+  mutate(error = abs(pred - cty)) %>%
+  summary()
