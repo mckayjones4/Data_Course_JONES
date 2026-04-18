@@ -1,0 +1,144 @@
+---
+author: "McKay Jones"
+date: "2026-04-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Analyzing Graduate School Data (Assginment 9)
+For this assignment I am exploring and modeling the predictors of graduate school admission.
+First, load required packages:
+
+```{r packages, echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+library(tidyverse)
+library(modelr)
+library(easystats)
+library(GGally)
+library(caret)
+```
+
+Let's load and look at this data.
+```{r}
+grad_dat <- read.csv('../../Data/GradSchool_Admissions.csv')
+glimpse(grad_dat)
+```
+I am using the ggpairs function (from the GGally package) to visualize relationships between the variables (admit, gre, gpa, rank) in this dataset.
+```{r}
+grad_dat %>%
+  select(gre, gpa, rank) %>%
+  ggpairs()
+```
+
+I am going to model on admit, and define 4 different potential models.
+```{r}
+mod1 = glm(formula = as.logical(admit) ~(gpa+gre)*rank,
+           data = grad_dat,
+           family = 'binomial')
+
+grad_dat$pred1 <- predict(mod1, grad_dat, type = 'response')
+
+grad_dat %>%
+  ggplot(aes(x = gpa,
+             y = pred1,
+             color = factor(rank))) +
+  geom_point() +
+  geom_smooth() +
+  labs(x = "GPA", y = "Model 1 Admission Prediction") +
+  guides(color = guide_legend(title = "rank"))
+  
+mod2 <- glm(formula = as.logical(admit)~(gpa+gre+rank),
+            data = grad_dat,
+            family = 'binomial')
+
+grad_dat$pred2 <- predict(mod2, grad_dat, type = 'response')
+
+grad_dat %>%
+  ggplot(aes(x = gpa,
+             y = pred2,
+             color = factor(rank))) +
+  geom_point() +
+  geom_smooth() +
+  labs(x = "GPA", y = "Model 2 Admission Prediction") +
+  guides(color = guide_legend(title = "School Rank"))
+
+mod3 <- glm(formula = as.logical(admit)~gpa*gre*rank,
+            data = grad_dat,
+            family = 'binomial')
+
+grad_dat$pred3 <- predict(mod3, grad_dat, type = 'response')
+
+grad_dat %>%
+  ggplot(aes(x = gpa,
+             y = pred3,
+             color = factor(rank))) +
+  geom_point() + 
+  geom_smooth() +
+  labs(x = "GPA", y = "Model 3 Admission Prediction") +
+  guides(color = guide_legend(title = "School Rank"))
+
+
+mod4 <- glm(formula = as.logical(admit)~gpa*gre+rank,
+            data = grad_dat,
+            family = 'binomial')
+
+grad_dat$pred4 <- predict(mod4, grad_dat, type = 'response')
+
+grad_dat %>%
+  ggplot(aes(x = gpa,
+             y = pred4,
+             color = factor(rank))) +
+  geom_point() + 
+  geom_smooth() +
+  labs(x = "GPA", y = "Model 4 Admission Prediction") +
+  guides(color = guide_legend(title = "School Rank"))
+```
+
+Let's compare the performance of each of these models.
+```{r}
+compare_performance(mod1, mod2, mod3, mod4)
+compare_performance(mod1, mod2, mod3, mod4) %>% plot()
+```
+
+Model 4 has the lowest AIC scores, but all of the models are relatively similar with their RMSE and R2 scores.
+Looking at the plots, the models are performing very similarly.
+I'm going to do some cross validation to compare how model 2 and model 4 perform.
+
+I'm splitting the data into training and testing sets.
+```{r}
+id <- createDataPartition(grad_dat$admit, p = 0.8, list = FALSE)
+
+train <- grad_dat[id,]
+test <- grad_dat[-id,]
+```
+
+I'm now going to retrain the models.
+```{r}
+mod2_formula <- mod2$formula
+mod2 <- glm(data = train, formula = mod2_formula)
+
+mod4_formula <- mod4$formula
+mod4 <- glm(data = train, formula = mod4_formula)
+```
+
+Now, I'm going to evaluate Models 2 and 4.
+```{r}
+compare_performance(mod2, mod4, rank = TRUE)
+```
+
+### Takeaways
+-Both models have low R2 (variance) values, but Model 4 explains slightly more variance.
+
+-Model 4 has a slightly lower RMSE value (which is better).
+
+-Model 4 has a slightly lower Sigma value.
+
+-Model 4 has higher AIC/AICc weights.
+
+-Model 2 has higher BIC weights, which suggests that Model 2 is simpler and preferred under BIC.
+
+-The overall performance scores strongly favor Model 4 (83.33%) over Model 2 (16.67%).
+
+-Model 4 is the better model overall.

@@ -1382,3 +1382,11 @@ dat_test$pred = predict(mod_mpg_train, dat_test)
 dat_test %>%
   mutate(error = abs(pred - cty)) %>%
   summary()
+
+#4/14/26####
+aov_1 <- aov(data = penguins,
+             formula = body_mass ~ species + bill_len)
+
+summary(aov_1)
+
+species*bill_length = species + bill_length_mm + species
