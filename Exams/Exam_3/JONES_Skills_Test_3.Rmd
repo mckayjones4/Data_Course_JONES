@@ -1,0 +1,160 @@
+---
+title: "Exam 3"
+author: "McKay Jones"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Part 1: Load and Clean Data
+
+In part 1, I'm going to load and clean the FacultySalaries_1995.csv file and re-create a graph.
+
+First, let's load some required projects.
+```{r include=FALSE}
+library(tidyverse)
+library(modelr)
+library(easystats)
+library(GGally)
+library(caret)
+library(broom)
+```
+
+
+
+I will load the data using the read.csv command, and save it to a 'dat' object.
+
+```{r}
+dat <- read.csv('FacultySalaries_1995.csv')
+```
+
+
+Let's take a look at this data so we know what to clean.
+
+```{r}
+glimpse(dat)
+```
+
+I'm cleaning the data by removing any 'VIIB' schools, and using the pivot_longer command to combine all of the professors' positions and salaries into two rows. This will make it easier to construct Fig1.
+
+In the newly constructed professor_type column, I made sure to remove redundant information ('Avg' in the beginning of the string and 'ProfSalary' at the end of the string). Now, all of the values in the professor_type column are 'Assist', "Assoc', and 'Full' (instead of 'AvgAssistProfSalary', for example).
+
+This 'tidied' data was saved to a dat_clean object for dowmstream analyses.
+
+```{r}
+dat_clean <- dat %>%
+  filter(Tier != 'VIIB') %>%
+  pivot_longer(ends_with('Salary'), names_to = 'professor_type',
+               names_prefix = "Avg",
+               values_to = 'avg_salary') %>%
+  mutate(professor_type = sub("ProfSalary", "", professor_type))
+```
+
+I then constructed the desired boxplot image, using facet_wrap() to group all the salaries by school rank. It looks like professors at Rank I schools tend to have higher salaries.
+
+```{r}
+img_1 <- dat_clean %>%
+  ggplot(aes(x = professor_type,
+             y = avg_salary,
+             fill = professor_type)) +
+  geom_boxplot() +
+  facet_wrap(~Tier) +
+  theme_minimal() +
+  labs(x = 'Rank', y = "Salary") +
+  guides(fill = guide_legend(title = "Rank")) +
+  theme(axis.text.x = element_text(angle = 45))
+```
+
+
+Let's view the image and save it.
+
+```{r}
+img_1
+
+ggsave('Fig1.png', plot = img_1, width = 3, height = 5)
+
+```
+
+## Part 2: ANOVA Model
+
+I am building an ANOVA model that tests the influence of State, School Tier, and Professor Rank/Type on "Salary" with NO interactions between the predictors.
+
+```{r}
+mod_anova <- aov(data = dat_clean, avg_salary~State+Tier+professor_type)
+
+summary(mod_anova)
+```
+
+
+## Part 3: Tidy Juniper Dataset
+
+This data set originated from a collaboration between Young Living Inc. and UVU Microbiology.
+
+First, I will load this data into a jun_dat object and take a look.
+
+```{r}
+jun_dat <- read.csv("Juniper_Oils.csv")
+
+glimpse(jun_dat)
+```
+Let's tidy this dataset. First, I saved the compounds I want to analyze into a 'chems' vector. To match the names in this vector, I replaced all of the periods in the original column names with '-'.
+
+For 'compound 1' and 'compound 2', which are separated by a space, I saved these two rows into another object with their '-' replaced with spaces. Then, I used bind_cols to add them back to the original data frame.
+
+```{r}
+chems <- c("alpha-pinene","para-cymene","alpha-terpineol","cedr-9-ene","alpha-cedrene","beta-cedrene","cis-thujopsene","alpha-himachalene","beta-chamigrene","cuparene","compound 1","alpha-chamigrene","widdrol","cedrol","beta-acorenol","alpha-acorenol","gamma-eudesmol","beta-eudesmol","alpha-eudesmol","cedr-8-en-13-ol","cedr-8-en-15-ol","compound 2","thujopsenal")
+
+
+jun_dat2 <- jun_dat %>%
+  rename_with(~ gsub("\\.", "-", .x))
+
+compounds <- jun_dat2 %>%
+  select(starts_with('compound')) %>%
+  rename_with(~ gsub("\\-", " ", .x))
+
+jun_dat3 <- jun_dat2 %>%
+  select(-starts_with('compound')) %>%
+  bind_cols(compounds)
+```
+
+Now, I will use the pivot_longer command on the chemicals and Mass-Spec concentrations of each one. This will be helpful for the figure we want to make.
+
+```{r}
+jun_dat4 <- jun_dat3 %>%
+  pivot_longer(chems, names_to = 'chemical',
+               values_to = 'concentration')
+```
+
+## Part 4: Make a Graph
+
+I will make a graph, with x = YearSinceBurn, y = Concentration, and facet = ChemicalID
+
+```{r}
+img_2 <- jun_dat4 %>%
+  ggplot(aes(x = YearsSinceBurn,
+             y = concentration)) +
+  geom_smooth() +
+  facet_wrap(~chemical, scales = 'free_y')
+
+img_2
+```
+
+## Part 5: Find chemicals that are significantly affected
+
+Now, I am going to use a generalized linear model to find which chemicals show concentrations that are significantly affected by "Years Since Burn".
+
+```{r}
+models <- jun_dat4 %>%
+  group_by(chemical) %>%
+  do(tidy(glm(concentration ~ YearsSinceBurn, data = .)))
+
+sig_chems <- models %>%
+  filter(term == "YearsSinceBurn",
+         p.value < 0.05) %>%
+  arrange(p.value)
+
+sig_chems
+```
+
